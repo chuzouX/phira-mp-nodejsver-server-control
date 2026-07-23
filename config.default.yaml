@@ -1,0 +1,12 @@
+# Generate with: node plugins/server-control/scripts/hash-password.js "your password"
+passwordHash: ''
+sessionTtlMinutes: 480
+loginMaxAttempts: 5
+loginLockMinutes: 15
+loginAttemptRetentionMinutes: 15
+maxLoginAttemptEntries: 10000
+sampleIntervalMs: 2000
+historyMinutes: 5
+maxEditableFileBytes: 1048576
+maxLogStreams: 8
+maxConcurrentLogAnalyses: 2

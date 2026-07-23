@@ -1,0 +1,16 @@
+id: server-control
+uuid: 6d3768ef-772d-4d9c-9897-317840a99811
+name: Server Control
+version: 1.0.0
+description: Independent server operations, metrics, plugin and configuration control panel
+author: Phira NodejsVer MP Server Team
+license: MIT
+repository: https://github.com/chuzouX/phira-mp-nodejsver-server-control
+homepage: https://github.com/chuzouX/phira-mp-nodejsver-server-control
+main: main.js
+dependencies: []
+serverVersion: '>=0.6.1'
+tags:
+  - admin
+  - monitoring
+  - configuration

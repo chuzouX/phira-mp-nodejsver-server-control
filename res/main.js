@@ -632,12 +632,27 @@ class ServerControlPlugin {
         const subcommand = String(args[0] ?? 'help').toLowerCase();
         switch (subcommand) {
             case 'help':
-                this.api.logger.info('[ServerControl] commands: /server-control status | /server-control hash "<password>"');
+                this.api.logger.info('[ServerControl] commands: /server-control status | /server-control reload | /server-control hash "<password>"');
                 this.api.logger.info('[ServerControl] password changes are manual only: edit config/server-control/config.yaml and restart');
                 return;
             case 'status':
                 this.api.logger.info(`[ServerControl] login password: ${this.passwordHash() ? 'configured' : 'not configured'}; route: /control`);
                 return;
+            case 'reload': {
+                const newConfig = this.api.readPluginConfig();
+                if (!newConfig) {
+                    this.api.logger.warn('[ServerControl] reload failed: unable to read config/server-control/config.yaml');
+                    return;
+                }
+                this.config = newConfig;
+                if (this.sampleTimer) {
+                    clearInterval(this.sampleTimer);
+                    const interval = Math.max(1000, this.config.sampleIntervalMs ?? 2000);
+                    this.sampleTimer = setInterval(() => this.collectSample(), interval);
+                }
+                this.api.logger.info('[ServerControl] configuration reloaded');
+                return;
+            }
             case 'hash': {
                 const password = args.slice(1).join(' ');
                 if (password.length < 10) {

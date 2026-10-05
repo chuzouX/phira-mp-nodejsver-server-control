@@ -1,7 +1,7 @@
 id: server-control
 uuid: 6d3768ef-772d-4d9c-9897-317840a99811
 name: Server Control
-version: 1.1.0
+version: 1.1.1
 description: Independent server operations, metrics, plugin and configuration control panel
 author: Phira NodejsVer MP Server Team
 license: MIT

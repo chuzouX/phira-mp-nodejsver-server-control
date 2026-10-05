@@ -43,6 +43,18 @@ class ServerControlPlugin {
         this.previousCpu = process.cpuUsage();
         this.previousSampleAt = process.hrtime.bigint();
         this.previousSystemCpu = this.systemCpuTimes();
+        const knownWeak = new Set([
+            'a-very-insecure-secret-change-it',
+            'change-this-to-a-random-secret',
+            'plugin-managed-session-secret',
+        ]);
+        const rawSecret = process.env.SESSION_SECRET || this.config.sessionSecret;
+        if (!rawSecret || rawSecret.length < 16 || knownWeak.has(rawSecret)) {
+            this.config = {
+                ...this.config,
+                sessionSecret: crypto_1.default.randomBytes(32).toString('hex'),
+            };
+        }
     }
     start() {
         const app = this.api.getExpressApp();
@@ -98,8 +110,10 @@ class ServerControlPlugin {
             res.status(success ? 200 : 501).json({ success });
         });
         this.registerConsoleCommands();
-        if (!this.passwordHash()) {
-            this.api.logger.warn('[ServerControl] passwordHash is empty; /control login is disabled');
+        const DEFAULT_EXAMPLE_HASH = 'scrypt$16384$8$1$3cd90212691f19a12703d4f0a8268825$f0f1a91d4edb8360a18a716686311fc99a74c2d50f691fa7e8e5dcc62a58ac7c';
+        const currentHash = this.passwordHash();
+        if (!currentHash || currentHash === DEFAULT_EXAMPLE_HASH) {
+            this.api.logger.error('[ServerControl] 错误: passwordHash 为空或等于默认示例哈希，/control 登录已被禁用。请运行 npm run server-control:hash 生成新密码。');
         }
         this.api.logger.info('[ServerControl] control panel mounted at /control');
     }
@@ -149,8 +163,12 @@ class ServerControlPlugin {
             attempt.lockedUntil = 0;
             attempt.count = 0;
         }
-        if (!this.passwordHash()) {
-            res.status(503).json({ error: 'Control password is not configured' });
+        const DEFAULT_EXAMPLE_HASH = 'scrypt$16384$8$1$3cd90212691f19a12703d4f0a8268825$f0f1a91d4edb8360a18a716686311fc99a74c2d50f691fa7e8e5dcc62a58ac7c';
+        const currentHash = this.passwordHash();
+        if (!currentHash || currentHash === DEFAULT_EXAMPLE_HASH) {
+            res.status(503).json({
+                error: 'Control password is not configured or using default example hash',
+            });
             return;
         }
         const valid = await this.verifyPassword(String(req.body?.password ?? ''), this.passwordHash());
